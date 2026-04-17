@@ -868,6 +868,9 @@ export default function Dashboard() {
           <button className="btn" onClick={() => setShowBriefing(!showBriefing)}>
             📄 {showBriefing ? 'Dashboard' : 'Briefing'}
           </button>
+          <button className="btn" onClick={() => window.open('/voice', '_blank')}>
+            🎙️ Voice AI
+          </button>
           <button className="btn btn-primary" onClick={fetchReport}>
             🔄 Re-Analyze
           </button>
