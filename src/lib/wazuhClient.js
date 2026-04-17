@@ -67,15 +67,19 @@ export function normalizeWazuhAlerts(wazuhResponse) {
     if (rule.cis) complianceTags.cis = rule.cis;
     if (rule['iso_27001-2013']) complianceTags.iso_27001 = rule['iso_27001-2013'];
 
+    // Geolocation fallback to Pune
+    const geo = source.GeoLocation || {};
+    const location = geo.location || {};
+    
     return {
       event_id: hit._id || `WAZUH-${idx}`,
       timestamp: source['@timestamp'] || source.timestamp || new Date().toISOString(),
       source: 'wazuh_sca',
       agent_name: source.agent?.name || 'unknown',
       agent_id: source.agent?.id || '000',
-      user_id: 'system',
+      user_id: source.data?.srcuser || source.data?.win?.eventdata?.targetUserName || 'system',
       user_role: 'system',
-      ip_address: '127.0.0.1',
+      ip_address: source.data?.srcip || '127.0.0.1',
       event_type: sca.type || 'sca_check',
       status: check.result || 'unknown',
       severity_level: rule.level || 3,
@@ -84,10 +88,10 @@ export function normalizeWazuhAlerts(wazuhResponse) {
       mitre_tactics: Array.isArray(mitreTactics) ? mitreTactics : (mitreTactics ? [mitreTactics] : []),
       mitre_techniques: Array.isArray(mitreTechniques) ? mitreTechniques : (mitreTechniques ? [mitreTechniques] : []),
       compliance_tags: complianceTags,
-      geo_country: 'Local',
-      geo_city: 'Local',
-      geo_lat: 0,
-      geo_lon: 0,
+      geo_country: geo.country_name || (source.data?.srcip ? 'Unknown' : 'India'),
+      geo_city: geo.city_name || (source.data?.srcip ? 'Unknown' : 'Pune'),
+      geo_lat: location.lat || 18.5204,
+      geo_lon: location.lon || 73.8567,
       raw_data: {
         sca_check_id: check.id,
         sca_check_title: check.title,

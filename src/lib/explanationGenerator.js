@@ -10,11 +10,18 @@ const TEMPLATES = {
 
   impossible_travel: (event) => {
     const raw = event.raw_data || {};
-    const prevLoc = raw.previous_location || {};
+    // Check both raw_data and features (engineer result) for previous location
+    const prevLoc = raw.previous_location || event.features?.previous_location || {};
+    
+    // Fallback logic for missing locations (defaulting to Pune as requested)
+    const prevCity = prevLoc.city || 'Pune';
+    const currCity = event.geo_city || (event.geo_lat === 18.5204 ? 'Pune' : 'Unknown');
+    
     const distance = raw.distance_km || event.features?.geo_distance_km || 'unknown';
-    const speed = raw.travel_speed_kmh || 'extreme';
+    const speed = raw.travel_speed_kmh || (distance !== 'unknown' ? 'high' : 'extreme');
     const timeDiff = raw.time_diff_minutes || 'minutes';
-    return `🔴 **Impossible Travel Alert**: User **${event.user_id}** logged in from **${prevLoc.city || 'Location A'}** (${prevLoc.country || ''}) and then from **${event.geo_city}** (${event.geo_country}) within **${timeDiff} minutes**. Distance: ~${distance} km, requiring a travel speed of ~${speed} km/h — far exceeding physical travel limits. This strongly indicates compromised credentials or VPN manipulation.`;
+    
+    return `🔴 **Impossible Travel Alert**: User **${event.user_id}** logged in from **${prevCity}** (${prevLoc.country || 'India'}) and then from **${currCity}** (${event.geo_country || 'India'}) within **${timeDiff} minutes**. Distance: ~${distance} km, requiring a travel speed of ~${speed} km/h — far exceeding physical travel limits. This strongly indicates compromised credentials or VPN manipulation.`;
   },
 
   off_hours: (event) => {

@@ -105,6 +105,7 @@ export function engineerFeatures(events) {
     let ip_country_changed = 0;
     let geo_distance_km = 0;
     let impossible_travel_flag = 0;
+    let previous_location = null;
     
     if (prevUserEvents.length > 0) {
       const lastEvt = prevUserEvents[prevUserEvents.length - 1];
@@ -121,7 +122,16 @@ export function engineerFeatures(events) {
         const timeDiffHours = time_since_last_event / 3600;
         if (timeDiffHours > 0 && geo_distance_km > 500) {
           const speed = geo_distance_km / timeDiffHours;
-          impossible_travel_flag = speed > 1000 ? 1 : 0;
+          if (speed > 1000) {
+            impossible_travel_flag = 1;
+            previous_location = {
+              city: lastEvt.city,
+              country: lastEvt.country,
+              lat: lastEvt.lat,
+              lon: lastEvt.lon,
+              ip: lastEvt.ip
+            };
+          }
         }
       }
     }
@@ -132,6 +142,7 @@ export function engineerFeatures(events) {
       ip: evt.ip_address,
       status: evt.status,
       country: evt.geo_country,
+      city: evt.geo_city,
       lat: evt.geo_lat,
       lon: evt.geo_lon
     });
@@ -178,6 +189,7 @@ export function engineerFeatures(events) {
         ip_country_changed,
         geo_distance_km: Math.round(geo_distance_km),
         impossible_travel_flag,
+        previous_location,
         // SCA/Compliance
         sca_check_result,
         sca_severity_level,
